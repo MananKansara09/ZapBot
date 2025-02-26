@@ -4,8 +4,10 @@ WORKDIR /app
 
 COPY bun.lockb bunfig.toml package.json tsconfig.json .env.sample ./
 COPY src ./src
-COPY index.ts ./
+# COPY index.ts ./
 
 RUN bun install
 
-CMD ["bun", "run", "index.ts"]
+RUN bun run build
+
+CMD ["bun", "run", "start"]

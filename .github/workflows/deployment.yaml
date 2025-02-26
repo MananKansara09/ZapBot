@@ -6,14 +6,13 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build -t your-dockerhub-username/zapbot:latest .
-    - name: Login to Docker Hub
-      run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      run: docker build -t manankansara0903/zapbot:latest .
+    - name: Login to Docker Hub using Access Token
+      run: echo "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Push the Docker image
-      run: docker push your-dockerhub-username/zapbot:latest
+      run: docker push manankansara0903/zapbot:latest

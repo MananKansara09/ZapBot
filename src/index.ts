@@ -22,7 +22,7 @@ const server = serve({
 
     console.log(JSON.stringify(logData, null, 2));
 
-    return new Response("Hello from Bun HTTP Server!", {
+    return new Response("Hello from Bun HTTP Server! manan", {
       headers: { "Content-Type": "text/plain" },
     });
   },

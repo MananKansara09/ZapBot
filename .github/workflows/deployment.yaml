@@ -27,8 +27,8 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
-          docker pull manankansara0903/zapbot:latest
-          docker stop zapbot-container || true
-          docker rm zapbot-container || true
-          docker run -d --name zapbot-container -p 80:8080 manankansara0903/zapbot:latest
+          sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
+          sudo docker pull manankansara0903/zapbot:latest
+          sudo docker stop zapbot-container || true
+          sudo docker rm zapbot-container || true
+          sudo docker run -d --name zapbot-container -p 80:8080 manankansara0903/zapbot:latest

@@ -1,0 +1,28 @@
+name: Build & Push Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build the Docker image
+      run: docker build -t manankansara0903/zapbot:latest .
+    
+    - name: Login to Docker Hub
+      run: echo "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+    
+    - name: Push the Docker image
+      run: docker push manankansara0903/zapbot:latest
+
+    - name: Trigger Deploy Workflow
+      run: |
+        curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy-to-ec2.yml/dispatches \
+        -d '{"ref":"main"}'

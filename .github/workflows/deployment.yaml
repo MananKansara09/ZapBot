@@ -19,4 +19,4 @@ jobs:
           sudo docker pull manankansara0903/zapbot:latest
           sudo docker stop zapbot-container || true
           sudo docker rm zapbot-container || true
-          sudo docker run -d --name zapbot-container -p 80:8080 manankansara0903/zapbot:latest
+          sudo docker run -d --name zapbot-container -p 8080:8080 manankansara0903/zapbot:latest

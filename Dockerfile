@@ -10,4 +10,5 @@ RUN bun install
 
 RUN bun run build
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["bun", "run", "start"]

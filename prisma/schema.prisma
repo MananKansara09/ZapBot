@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,163 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model superUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById String? // Nullable to allow root users
+  updatedById String? // Nullable to allow independent updates
+
+  createdBy superUser? @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy superUser? @relation("UpdatedBy", fields: [updatedById], references: [id])
+
+  createdUsers superUser[] @relation("CreatedBy")
+  updatedUsers superUser[] @relation("UpdatedBy")
+
+  createdByCommunicationChannel communicationChannel[] @relation("CreatedBy")
+  updatedByCommunicationChannel communicationChannel[] @relation("UpdatedBy")
+
+  createdBytypeOfMessage typeOfMessage[] @relation("CreatedBy")
+  updatedBytypeOfMessage typeOfMessage[] @relation("UpdatedBy")
+
+  createdByUser user[] @relation("CreatedBy")
+  updatedByuser user[] @relation("UpdatedBy")
+  
+  createdByChannelUsername channelUsername[] @relation("CreatedBy")
+  updatedByChannelUsername channelUsername[] @relation("UpdatedBy")
+  
+}
+
+model communicationChannel {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById String? // Nullable to allow root users
+  updatedById String? // Nullable to allow independent updates
+
+  createdBy superUser? @relation("CreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy superUser? @relation("UpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  
+  // Relation to channel usernames
+  channelUsernames channelUsername[]
+  
+  // Relation to chat history
+  chatHistory chatHistory[]
+}
+
+model typeOfMessage {
+  id                 String   @id @default(uuid())
+  name               String
+  description        String?
+  recivedFromChannel Boolean? @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById String? // Nullable to allow root users
+  updatedById String? // Nullable to allow independent updates
+
+  responseStructure Json?
+
+  createdBy superUser? @relation("CreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy superUser? @relation("UpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+}
+
+model user {
+  id          String     @id @default(uuid())
+  name        String
+  email       String     @unique
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdById String? // Nullable to allow root users
+  updatedById String? // Nullable to allow independent updates
+  createdBy   superUser? @relation("CreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy   superUser? @relation("UpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  
+  // Relation to channel usernames
+  channelUsernames channelUsername[]
+  
+  // Relation to chat history
+  chatHistory chatHistory[]
+}
+
+// Model for channel-specific usernames
+model channelUsername {
+  id        String   @id @default(uuid())
+  username  String
+  metaData  Json?    // For storing additional channel-specific user data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId              String
+  user                user                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  communicationChannelId String
+  communicationChannel   communicationChannel @relation(fields: [communicationChannelId], references: [id], onDelete: Cascade)
+  
+  createdById String? // Nullable to allow root users
+  updatedById String? // Nullable to allow independent updates
+  
+  createdBy superUser? @relation("CreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy superUser? @relation("UpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  
+  // Unique constraint to ensure one username per user per channel
+  @@unique([userId, communicationChannelId])
+}
+
+// Enum for message types
+enum MessageType {
+  TEXT
+  IMAGE
+  VOICE
+  VIDEO
+  DOCUMENT
+  POLL
+  EMOJI
+  STICKER
+  LOCATION
+  CONTACT
+  OTHER
+}
+
+// Model for chat history
+model chatHistory {
+  id           String      @id @default(uuid())
+  messageType  MessageType
+  content      String?     // For text messages
+  mediaUrl     String?     // For media (images, videos, voice)
+  mediaData    Bytes?      // For storing small media directly
+  metadata     Json?       // For additional data (poll options, emoji data, etc.)
+  externalId   String?     // To store message ID from the external platform
+  
+  // Expiration settings
+  expiresAt    DateTime?   // When this message should expire
+  isExpired    Boolean     @default(false)
+  
+  // Timestamps
+  sentAt       DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  userId                String
+  user                  user                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  communicationChannelId String
+  communicationChannel   communicationChannel @relation(fields: [communicationChannelId], references: [id], onDelete: Cascade)
+
+  
+  // Indexing for faster queries
+  @@index([userId])
+  @@index([communicationChannelId])
+  @@index([expiresAt])
+  @@index([isExpired])
 }
